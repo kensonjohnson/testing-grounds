@@ -1,6 +1,6 @@
 import express from "express";
 import { configurePassport } from "./controllers/passport/passport.js";
-import { PORT, WEBSITE_URL } from "./constants.js";
+import { PORT, BASE_URL } from "./constants.js";
 import { httpLogger } from "./tools/logging.js";
 import { setupRouters } from "./routes/setup-routers.js";
 
@@ -27,4 +27,4 @@ setupRouters(app);
 /*------------------
 --- Start Server ---
 ------------------*/
-app.listen(PORT, () => console.log(`Server is running at ${WEBSITE_URL}`));
+app.listen(PORT, () => console.log(`Server is running at ${BASE_URL}`));

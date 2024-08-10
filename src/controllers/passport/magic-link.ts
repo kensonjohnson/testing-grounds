@@ -4,7 +4,7 @@ import { transporter } from "../mailtrap/transporter.js";
 import type { Mail } from "mailtrap";
 import {
   COOKIE_SECRET,
-  WEBSITE_URL,
+  BASE_URL,
   MAILTRAP_SENDER_EMAIL,
 } from "../../constants.js";
 import { eq } from "drizzle-orm";
@@ -23,7 +23,7 @@ export const MagicLinkStrategy = new MagicLink.Strategy(
 );
 
 function sendEmailToUser(user: Express.User, token: string) {
-  const link = WEBSITE_URL + "/auth/email/verify?token=" + token;
+  const link = BASE_URL + "/auth/email/verify?token=" + token;
   const mail: Mail = {
     to: [{ email: user.email }],
     from: {
