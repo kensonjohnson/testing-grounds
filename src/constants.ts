@@ -62,3 +62,9 @@ assert(
   "Environment variable STRIPE_WEBHOOK_SECRET must be set!"
 );
 export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+
+assert(
+  process.env.STRIPE_PRICE_ID,
+  "Environment variable STRIPE_PRICE_ID must be set!"
+);
+export const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID;
