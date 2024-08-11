@@ -9,8 +9,17 @@ const app = express();
 /*------------------
 ---- Middleware ----
 ------------------*/
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(
+  express.json({
+    verify(req, res, buf) {
+      if (req.url === "/webhook") {
+        req.rawBody = buf.toString();
+      }
+    },
+  })
+);
+
 app.use(httpLogger);
 
 // Serve static files
