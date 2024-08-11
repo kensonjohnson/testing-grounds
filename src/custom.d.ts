@@ -10,6 +10,12 @@ declare namespace Express {
   }
 }
 
+declare module "http" {
+  interface IncomingMessage {
+    rawBody?: string;
+  }
+}
+
 declare module "passport-magic-link" {
   import type { SentMessageInfo } from "nodemailer";
   import { Strategy } from "passport";
