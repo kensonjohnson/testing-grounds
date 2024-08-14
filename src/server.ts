@@ -12,8 +12,9 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(
   express.json({
+    // This is specifically for the Stripe webhook
     verify(req, res, buf) {
-      if (req.url === "/webhook") {
+      if (req.url === "/webhook/stripe") {
         req.rawBody = buf.toString();
       }
     },
