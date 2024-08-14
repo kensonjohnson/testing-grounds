@@ -16,6 +16,8 @@
     "db:migrate": "tsc && node build/drizzle/migrate.js"
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^2.7.3",
+    "@stripe/stripe-js": "^4.2.0",
     "@types/uuid": "^9.0.8",
     "connect-pg-simple": "^9.0.1",
     "dotenv": "^16.4.5",
