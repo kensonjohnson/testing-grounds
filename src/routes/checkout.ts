@@ -4,7 +4,6 @@ import {
   createStripeCheckoutSession,
   getStripeCheckoutSession,
   getStripeConfig,
-  processStripeWebhook,
 } from "../controllers/stripe/checkout-controller.js";
 
 const checkoutRouter = Router();
@@ -16,7 +15,5 @@ checkoutRouter.post("/session/create", createStripeCheckoutSession);
 checkoutRouter.get("/config", getStripeConfig);
 
 checkoutRouter.post("/portal/create", createStripeBillingPortal);
-
-checkoutRouter.post("webhook", processStripeWebhook);
 
 export { checkoutRouter };
