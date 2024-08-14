@@ -5,8 +5,9 @@ import {
   BASE_URL,
   STRIPE_PRICE_ID,
   STRIPE_PUBLISHABLE_KEY,
-  STRIPE_WEBHOOK_SECRET,
 } from "../../constants.js";
+import { UserTable } from "../../drizzle/schema.js";
+import { eq } from "drizzle-orm";
 
 export async function getStripeCheckoutSession(req: Request, res: Response) {
   const sessionId = req.params.sessionId;
@@ -15,7 +16,9 @@ export async function getStripeCheckoutSession(req: Request, res: Response) {
   }
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-    res.json({ session });
+    res.json({
+      status: session.status,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
@@ -37,13 +40,27 @@ export async function createStripeCheckoutSession(req: Request, res: Response) {
           quantity: 1,
         },
       ],
-      success_url: `${BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${BASE_URL}/cancel`,
+      ui_mode: "embedded",
+      return_url: `${BASE_URL}/account`,
     });
 
-    res.redirect(303, session.url!);
+    const user = await db.query.UserTable.findFirst({
+      where: eq(UserTable.id, req.user!.id),
+    });
+
+    if (!user) {
+      throw new Error("createStripeCheckoutSession: User not found");
+    }
+
+    if (!user.stripe_customer_id) {
+      db.update(UserTable)
+        .set({ stripe_customer_id: session.customer as string })
+        .where(eq(UserTable.id, req.user!.id));
+    }
+
+    res.json({ session });
   } catch (error) {
-    console.error(error);
+    req.log.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 }
@@ -56,42 +73,24 @@ export function getStripeConfig(req: Request, res: Response) {
 }
 
 export async function createStripeBillingPortal(req: Request, res: Response) {
-  // TODO: Convert to using the stripe customer id stored in the database, instead of the client passing up the session id
-  const { sessionId } = req.body;
-  const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId);
+  const user = await db.query.UserTable.findFirst({
+    where: eq(UserTable.id, req.user!.id),
+  });
+
+  if (!user) {
+    throw new Error("createStripeBillingPortal: User not found");
+  }
+
+  if (!user.stripe_customer_id) {
+    return res
+      .status(400)
+      .json({ error: "User does not have a stripe customer ID" });
+  }
 
   const portalSession = await stripe.billingPortal.sessions.create({
-    customer: checkoutSession.customer as string,
-    return_url: `${BASE_URL}/account`,
+    customer: user.stripe_customer_id,
+    return_url: `${BASE_URL}?r=account`,
   });
 
   res.redirect(303, portalSession.url);
-}
-
-export function processStripeWebhook(req: Request, res: Response) {
-  if (!req.headers["stripe-signature"]) {
-    return res.sendStatus(400);
-  }
-  const signature = req.headers["stripe-signature"];
-  try {
-    const event = stripe.webhooks.constructEvent(
-      // Possibly need to make a rawBody middleware??
-      req.rawBody!,
-      signature,
-      STRIPE_WEBHOOK_SECRET
-    );
-
-    const data = event.data;
-    const eventType = event.type;
-
-    if (eventType === "checkout.session.completed") {
-      console.log("🔔  Payment received!", data);
-      // Do something with the data
-    }
-
-    res.sendStatus(200);
-  } catch (error) {
-    console.log("⚠️  Webhook signature verification failed.");
-    return res.sendStatus(400);
-  }
 }
