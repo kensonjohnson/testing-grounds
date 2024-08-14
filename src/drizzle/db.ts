@@ -7,7 +7,7 @@ import { pinoLogger } from "../tools/logging.js";
 
 const { Pool } = pg;
 
-const pool = new Pool(DB_CONFIG);
+export const pool = new Pool(DB_CONFIG);
 
 let logger: boolean | DefaultLogger = false;
 
