@@ -34,6 +34,7 @@ export async function createStripeCheckoutSession(req: Request, res: Response) {
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      customer_email: req.user!.email,
       line_items: [
         {
           price: priceId,
@@ -50,12 +51,6 @@ export async function createStripeCheckoutSession(req: Request, res: Response) {
 
     if (!user) {
       throw new Error("createStripeCheckoutSession: User not found");
-    }
-
-    if (!user.stripe_customer_id) {
-      db.update(UserTable)
-        .set({ stripe_customer_id: session.customer as string })
-        .where(eq(UserTable.id, req.user!.id));
     }
 
     res.json({ session });
