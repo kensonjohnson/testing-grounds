@@ -22,6 +22,13 @@
       "when": 1723594230223,
       "tag": "0002_uneven_caretaker",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1723847867540,
+      "tag": "0003_condemned_ironclad",
+      "breakpoints": true
     }
   ]
 }

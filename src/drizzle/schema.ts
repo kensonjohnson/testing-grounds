@@ -44,7 +44,6 @@ export const UserTable = pgTable(
     credit_balance: integer("credit_balance").default(0).notNull(),
     dark_mode: boolean("dark_mode").default(false).notNull(),
     stripe_customer_id: varchar("stripe_customer_id", { length: 255 }),
-    stripe_subscription_id: varchar("stripe_subscription_id", { length: 255 }),
   },
   (table) => {
     return {
@@ -114,6 +113,8 @@ export const CreditTable = pgTable("credit", {
     .notNull()
     .references(() => UserTable.id, { onDelete: "cascade" }),
   amount: integer("amount").default(0).notNull(),
+  stripe_subscription_id: varchar("stripe_subscription_id", { length: 255 }),
+  stripe_invoice_id: varchar("stripe_invoice_id", { length: 255 }),
   created_on: timestamp("created_on", { mode: "date" }).defaultNow().notNull(),
 });
 
