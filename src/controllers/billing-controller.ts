@@ -24,7 +24,7 @@ export async function addCredits(req: Request, res: Response) {
 
     // Calculate the user's balance, updating it in this user's account.
     const { balance } = await db.transaction(async (tx) => {
-      await db.insert(CreditTable).values({ user_id: userId, amount: 10 });
+      await tx.insert(CreditTable).values({ user_id: userId, amount: 10 });
       const credits = await tx
         .select({ credit: sum(CreditTable.amount) })
         .from(CreditTable)
