@@ -44,6 +44,9 @@ export const UserTable = pgTable(
     credit_balance: integer("credit_balance").default(0).notNull(),
     dark_mode: boolean("dark_mode").default(false).notNull(),
     stripe_customer_id: varchar("stripe_customer_id", { length: 255 }),
+    stripe_subscription_expiry: timestamp("stripe_subscription_expiry", {
+      mode: "date",
+    }),
   },
   (table) => {
     return {

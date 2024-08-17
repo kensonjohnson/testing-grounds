@@ -29,6 +29,13 @@
       "when": 1723847867540,
       "tag": "0003_condemned_ironclad",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1723926285710,
+      "tag": "0004_sweet_goliath",
+      "breakpoints": true
     }
   ]
 }
