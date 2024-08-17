@@ -12,6 +12,13 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: join(cwd(), "build/frontend"),
       emptyOutDir: true,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            highlight: ["highlight.js"],
+          },
+        },
+      },
     },
     plugins: [react()],
     server: {
