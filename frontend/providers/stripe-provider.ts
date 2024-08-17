@@ -31,7 +31,7 @@ export class StripeProvider {
     return this.#session;
   }
 
-  setSession(session: Stripe.Checkout.Session | null) {
+  set session(session: Stripe.Checkout.Session | null) {
     this.#session = session;
   }
 
