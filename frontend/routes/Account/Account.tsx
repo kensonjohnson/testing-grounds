@@ -61,24 +61,20 @@ async function loader() {
       message = "There was an error processing your request.";
     }
 
-    const session = await response.json();
+    const status = await response.json();
 
     // Customer is still in the checkout process
-    if (session.status === "open") {
+    if (status === "open") {
       return redirect("/account/create-subscription");
     }
 
     // Customer has completed the checkout process, show a message
-    if (session.status === "completed") {
+    if (status === "complete") {
       message = "Your subscription was successful!";
     }
 
-    if (session.status === "failed") {
-      message = "Your subscription was not created.";
-    }
-
     // Clear the session
-    stripeProvider.setSession(null);
+    stripeProvider.session = null;
   }
 
   return { user: authProvider.user, message };
