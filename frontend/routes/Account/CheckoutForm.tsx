@@ -29,7 +29,7 @@ export async function loader() {
     }
 
     const { session } = await response.json();
-    stripeProvider.setSession(session);
+    stripeProvider.session = session;
   }
 
   return stripeProvider.session;
