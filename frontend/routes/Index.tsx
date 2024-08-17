@@ -6,7 +6,11 @@ import { LoaderFunctionArgs, redirect } from "react-router-dom";
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   await authProvider.ready;
-  if (authProvider.isAuthenticated && url.pathname === "/") {
+  if (
+    authProvider.isAuthenticated &&
+    url.pathname === "/" &&
+    url.search === ""
+  ) {
     return redirect("/dashboard");
   }
   return null;
