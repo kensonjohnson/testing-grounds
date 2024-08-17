@@ -42,16 +42,8 @@ export async function createStripeCheckoutSession(req: Request, res: Response) {
         },
       ],
       ui_mode: "embedded",
-      return_url: `${BASE_URL}/account`,
+      return_url: `${BASE_URL}?r=account`,
     });
-
-    const user = await db.query.UserTable.findFirst({
-      where: eq(UserTable.id, req.user!.id),
-    });
-
-    if (!user) {
-      throw new Error("createStripeCheckoutSession: User not found");
-    }
 
     res.json({ session });
   } catch (error) {
