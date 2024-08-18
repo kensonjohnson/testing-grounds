@@ -1,5 +1,5 @@
 declare namespace Express {
-  export interface User {
+  interface User {
     id: number;
     first_name: string | null;
     last_name: string | null;
@@ -7,6 +7,9 @@ declare namespace Express {
     email_verified: boolean;
     initial_setup_complete: boolean;
     credit_balance: number;
+    dark_mode: boolean;
+    stripe_customer_id: string | null;
+    stripe_subscription_expiry: string | null;
   }
 }
 

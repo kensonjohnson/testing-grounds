@@ -6,6 +6,9 @@ declare type User = {
   email_verified: boolean;
   initial_setup_complete: boolean;
   credit_balance: number;
+  dark_mode: boolean;
+  stripe_customer_id: string | null;
+  stripe_subscription_expiry: string | null;
 };
 
 declare type List = {
