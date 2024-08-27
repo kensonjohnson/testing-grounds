@@ -8,6 +8,7 @@ import {
 } from "../../constants.js";
 import { UserTable } from "../../drizzle/schema.js";
 import { eq } from "drizzle-orm";
+import type Stripe from "stripe";
 
 export async function getStripeCheckoutSession(req: Request, res: Response) {
   const sessionId = req.params.sessionId;
@@ -34,6 +35,9 @@ export async function createStripeCheckoutSession(req: Request, res: Response) {
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      customer: req.user?.stripe_customer_id
+        ? req.user!.stripe_customer_id
+        : undefined,
       customer_email: req.user!.email,
       line_items: [
         {
@@ -42,7 +46,7 @@ export async function createStripeCheckoutSession(req: Request, res: Response) {
         },
       ],
       ui_mode: "embedded",
-      return_url: `${BASE_URL}?r=account`,
+      return_url: `${BASE_URL}/account/success`,
     });
 
     res.json({ session });
@@ -60,24 +64,29 @@ export function getStripeConfig(req: Request, res: Response) {
 }
 
 export async function createStripeBillingPortal(req: Request, res: Response) {
-  const user = await db.query.UserTable.findFirst({
-    where: eq(UserTable.id, req.user!.id),
-  });
+  try {
+    const user = await db.query.UserTable.findFirst({
+      where: eq(UserTable.id, req.user!.id),
+    });
 
-  if (!user) {
-    throw new Error("createStripeBillingPortal: User not found");
+    if (!user) {
+      throw new Error("createStripeBillingPortal: User not found");
+    }
+
+    if (!user.stripe_customer_id) {
+      return res
+        .status(400)
+        .json({ error: "User does not have a stripe customer ID" });
+    }
+
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: user.stripe_customer_id,
+      return_url: `${BASE_URL}?r=account`,
+    });
+
+    res.redirect(303, portalSession.url);
+  } catch (error) {
+    req.log.error(error);
+    res.redirect(303, `${BASE_URL}?r=account`);
   }
-
-  if (!user.stripe_customer_id) {
-    return res
-      .status(400)
-      .json({ error: "User does not have a stripe customer ID" });
-  }
-
-  const portalSession = await stripe.billingPortal.sessions.create({
-    customer: user.stripe_customer_id,
-    return_url: `${BASE_URL}?r=account`,
-  });
-
-  res.redirect(303, portalSession.url);
 }
