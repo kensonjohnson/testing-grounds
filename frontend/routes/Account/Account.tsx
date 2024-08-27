@@ -1,14 +1,9 @@
-import {
-  Form,
-  Link,
-  RouteObject,
-  redirect,
-  useLoaderData,
-} from "react-router-dom";
+import { Link, RouteObject, redirect, useLoaderData } from "react-router-dom";
 import { authProvider } from "../../providers/auth-provider";
 import styles from "./Account.module.css";
 import { stripeProvider } from "../../providers/stripe-provider";
 import { Checkout, loader as createSubscriptionLoader } from "./CheckoutForm";
+import { Success } from "./Success";
 
 export const accountRoutes: RouteObject[] = [
   {
@@ -21,6 +16,10 @@ export const accountRoutes: RouteObject[] = [
     path: "account/create-subscription",
     element: <Checkout />,
     loader: createSubscriptionLoader,
+  },
+  {
+    path: "/account/success",
+    element: <Success />,
   },
 ];
 
@@ -81,14 +80,19 @@ async function loader() {
 }
 
 export function Account() {
-  const { user } = useLoaderData() as {
+  const { user, message } = useLoaderData() as {
     user: User | null;
     message: string | undefined;
   };
 
+  console.log("User", user);
   if (!user) {
     return <div>Loading...</div>;
   }
+
+  const subscriptionExpiry = user.stripe_subscription_expiry
+    ? new Date(user.stripe_subscription_expiry)
+    : null;
 
   return (
     <div className={styles.container}>
@@ -108,16 +112,21 @@ export function Account() {
       </aside>
       <main className={styles.main}>
         {user.first_name && <h2>Welcome {user.first_name}!</h2>}
+        {message && <p style={{ color: "green" }}>{message}</p>}
         <p>This is your account page. You can see your account details here.</p>
         <div className={styles.buttonContainer}>
-          <Link to="/account/create-subscription" className={styles.button}>
-            Create a Subscription
-          </Link>
-          <Form method="post">
-            <button type="submit" className={styles.button}>
-              Add Credits Manually
-            </button>
-          </Form>
+          {subscriptionExpiry &&
+          subscriptionExpiry.getTime() > new Date().getTime() ? (
+            <form action="/checkout/portal/create" method="POST">
+              <button type="submit" className={styles.button}>
+                Manage Subscription
+              </button>
+            </form>
+          ) : (
+            <Link to="/account/create-subscription" className={styles.button}>
+              Create a Subscription
+            </Link>
+          )}
         </div>
         <p>Credits last for 60 days</p>
       </main>
