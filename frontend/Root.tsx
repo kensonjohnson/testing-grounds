@@ -17,9 +17,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const redirectTo = url.searchParams.get("r");
   if (redirectTo) {
-    // Include query string in the redirect, if present
-    const path = decodeURIComponent(redirectTo);
-    return redirect("/" + path);
+    return redirect("/" + redirectTo);
   }
 
   await authProvider.ready;
