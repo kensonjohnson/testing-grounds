@@ -7,7 +7,7 @@ import { CreditTable, DebitTable, UserTable } from "../drizzle/schema.js";
 
 export async function processStripeWebhook(req: Request, res: Response) {
   if (!req.headers["stripe-signature"]) {
-    return res.sendStatus(400);
+    throw new Error("Missing Stripe signature header");
   }
 
   const signature = req.headers["stripe-signature"];
@@ -20,21 +20,22 @@ export async function processStripeWebhook(req: Request, res: Response) {
 
     const eventType = event.type;
 
+    // Handle successful invoice payments
     if (eventType === "invoice.paid") {
+      req.log.info("Invoice paid");
       const data = event.data.object;
       const customerEmail = data.customer_email;
       const invoiceId = data.id;
       const subscriptionId = data.subscription as string | null;
       if (!customerEmail || !invoiceId) {
-        return res.sendStatus(400);
+        throw new Error("Missing required data in webhook event");
       }
 
       const user = await db.query.UserTable.findFirst({
         where: eq(UserTable.email, customerEmail),
       });
       if (user === undefined) {
-        res.sendStatus(404);
-        return;
+        throw new Error("User not found");
       }
 
       const sixtyDaysAgo = new Date();
@@ -94,9 +95,34 @@ export async function processStripeWebhook(req: Request, res: Response) {
       });
     }
 
+    // Handle subscription cancellations
+    if (
+      eventType === "subscription_schedule.canceled" ||
+      eventType === "customer.subscription.deleted"
+    ) {
+      req.log.info("Subscription cancelled");
+      const data = event.data.object;
+      const customerId = data.customer as string | null;
+      if (!customerId) {
+        throw new Error("Missing required data in webhook event");
+      }
+
+      const user = await db.query.UserTable.findFirst({
+        where: eq(UserTable.stripe_customer_id, customerId),
+      });
+
+      if (user === undefined) {
+        throw new Error("User not found");
+      }
+
+      db.update(UserTable)
+        .set({ stripe_subscription_expiry: null })
+        .where(eq(UserTable.id, user.id));
+    }
+
     res.sendStatus(200);
   } catch (error) {
-    req.log.error("⚠️  Webhook signature verification failed.");
+    req.log.error(error, "⚠️ Stripe webhook error.");
     return res.sendStatus(400);
   }
 }
